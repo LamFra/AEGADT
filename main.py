@@ -1,6 +1,5 @@
 import pickle
 import numpy as np
-
 import pandas as pd
 from sklearn import tree
 from sklearn.model_selection import train_test_split
@@ -34,6 +33,7 @@ def generate_initial_population(population):
         x_tr, x_te, y_tr, y_te = split_dataset(TRAIN_FILE_NAME)
         clf = tree.DecisionTreeClassifier()
         return clf.fit(x_tr, y_tr)
+
     mod = []
     for _ in range(population):
         mod.append(generate_tree())
@@ -53,9 +53,23 @@ def score_single_tree():
     return result
 
 
+def calculate_accuracy(mod):
+    x_test, y_test = split_train_set(TEST_FILE_NAME)
+    a = []
+    for m in mod:
+        a.append(m.score(x_test, y_test))
+    d = []
+    for i, j in zip(a, mod):
+        d.append((i, j))
+    d.sort(key=lambda tup: tup[0], reverse=True)
+    return d
+
+
 if __name__ == '__main__':
     initial_population = 10
-    x_test, y_test = split_train_set(TEST_FILE_NAME)
+    s = 0.2
     models = generate_initial_population(initial_population)
-    for model, i in zip(models, range(initial_population)):
-        print("Accuracy of model %d is %f" % (i, model.score(x_test, y_test)))
+    generation = calculate_accuracy(models)
+    generation = generation[:int(len(generation) * s)]
+    print(generation)
+    print(len(generation))
