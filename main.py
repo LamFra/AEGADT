@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from sklearn import tree
 from sklearn.model_selection import train_test_split
+from sklearn.ensemble import VotingClassifier
 
 TRAIN_FILE_NAME = "dataset/winequality-white.csv"
 TEST_FILE_NAME = "dataset/winequality-white_test.csv"
@@ -65,11 +66,26 @@ def calculate_accuracy(mod):
     return d
 
 
+def nex_gen(actual_gen):
+    def generate_child(m):
+        child = VotingClassifier(m, voting="hard")
+        x_tr, x_te, y_tr, y_te = split_dataset(TRAIN_FILE_NAME)
+        return child.fit(x_tr, y_tr.ravel())
+
+    mod = []
+    for c, i in zip(actual_gen, range(len(actual_gen))):
+        mod.append(("clf" + str(i), c[1]))
+
+    x, y = split_train_set(TEST_FILE_NAME)
+    child = generate_child(mod)
+    return child.score(x, y)
+
+
 if __name__ == '__main__':
     initial_population = 10
-    s = 0.2
+    s = 0.3
     models = generate_initial_population(initial_population)
     generation = calculate_accuracy(models)
     generation = generation[:int(len(generation) * s)]
-    print(generation)
-    print(len(generation))
+    print("New gen: ", nex_gen(generation))
+    print("Old gen", generation)
