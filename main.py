@@ -1,4 +1,6 @@
 import pickle
+import random
+
 import numpy as np
 import pandas as pd
 from sklearn import tree
@@ -7,6 +9,7 @@ from sklearn.ensemble import VotingClassifier
 
 TRAIN_FILE_NAME = "dataset/winequality-white.csv"
 TEST_FILE_NAME = "dataset/winequality-white_test.csv"
+POPULATION = 100
 
 
 def split_dataset(filename):
@@ -66,26 +69,43 @@ def calculate_accuracy(mod):
     return d
 
 
-def nex_gen(actual_gen):
+def next_gen(actual_gen):
     def generate_child(m):
-        child = VotingClassifier(m, voting="hard")
+        ch = VotingClassifier(m, voting="hard")
         x_tr, x_te, y_tr, y_te = split_dataset(TRAIN_FILE_NAME)
-        return child.fit(x_tr, y_tr.ravel())
+        return ch.fit(x_tr, y_tr.ravel())
+
+    def random_combination(iterable, r):
+        pool = tuple(iterable)
+        n = len(pool)
+        indices = sorted(random.sample(range(n), r))
+        a = []
+        for j in indices:
+            a.append(pool[j])
+        return a
 
     mod = []
     for c, i in zip(actual_gen, range(len(actual_gen))):
         mod.append(("clf" + str(i), c[1]))
 
-    x, y = split_train_set(TEST_FILE_NAME)
-    child = generate_child(mod)
-    return child.score(x, y)
+    new_gen = []
+    for _ in range(POPULATION):
+        new_gen.append(generate_child(random_combination(mod, 3)))
+
+    return new_gen
 
 
 if __name__ == '__main__':
-    initial_population = 10
     s = 0.3
-    models = generate_initial_population(initial_population)
+    models = generate_initial_population(POPULATION)
     generation = calculate_accuracy(models)
     generation = generation[:int(len(generation) * s)]
-    print("New gen: ", nex_gen(generation))
-    print("Old gen", generation)
+    ng = next_gen(generation)
+    array = []
+    for n in ng:
+        x_tr, x_te, y_tr, y_te = split_dataset(TRAIN_FILE_NAME)
+        array.append(n.fit(x_tr, y_tr.ravel()))
+    newgen = calculate_accuracy(array)
+    print("New gen: ", newgen)
+    print(len(ng))
+    print("Old gen: ", generation)
