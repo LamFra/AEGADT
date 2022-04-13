@@ -9,7 +9,8 @@ from sklearn.ensemble import VotingClassifier
 
 TRAIN_FILE_NAME = "dataset/winequality-white.csv"
 TEST_FILE_NAME = "dataset/winequality-white_test.csv"
-POPULATION = 100
+POPULATION = 50
+GENERATION = 3
 
 
 def split_dataset(filename):
@@ -99,13 +100,16 @@ if __name__ == '__main__':
     s = 0.3
     models = generate_initial_population(POPULATION)
     generation = calculate_accuracy(models)
-    generation = generation[:int(len(generation) * s)]
-    ng = next_gen(generation)
-    array = []
-    for n in ng:
-        x_tr, x_te, y_tr, y_te = split_dataset(TRAIN_FILE_NAME)
-        array.append(n.fit(x_tr, y_tr.ravel()))
-    newgen = calculate_accuracy(array)
-    print("New gen: ", newgen)
-    print(len(ng))
-    print("Old gen: ", generation)
+    save_decision_tree(generation[0][1])
+    for i in range(GENERATION-1):
+        generation = generation[:int(len(generation) * s)]
+        print("Accuracy generation %d: %s" % (i+1, generation[0][0]))
+        ng = next_gen(generation)
+        array = []
+        for n in ng:
+            x_tr, x_te, y_tr, y_te = split_dataset(TRAIN_FILE_NAME)
+            array.append(n.fit(x_tr, y_tr.ravel()))
+        newgen = calculate_accuracy(array)
+        generation = newgen
+
+    print("Accuracy generation %d: %s" % (GENERATION, generation[0][0]))
