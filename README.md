@@ -45,12 +45,10 @@ The best represented individual is chosen as the solution.
 * [Wine Quality Dataset](https://archive.ics.uci.edu/ml/datasets/wine+quality)
 
 ### Authors
-*Francesca La Manna, University of Salerno 
-Gioacchino Caliendo, University of Salerno*
+*Francesca La Manna, University of Salerno & Gioacchino Caliendo, University of Salerno*
 
 ### Professors
-*Prof. Fabio Palomba, University of Salerno
-Prof. Dario Di Nucci, University of Salerno*
+*Prof. Fabio Palomba, University of Salerno & Prof. Dario Di Nucci, University of Salerno*
 
 ### Tutor
 *Ph.D Student Emanuele Iannone*
