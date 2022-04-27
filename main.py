@@ -4,6 +4,7 @@ import random
 import numpy as np
 import pandas as pd
 from sklearn import tree
+from sklearn.metrics import precision_score, recall_score, f1_score
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import VotingClassifier
 
@@ -36,7 +37,7 @@ def save_decision_tree(mod):
 def generate_initial_population(population):
     def generate_tree():
         x_tr, x_te, y_tr, y_te = split_dataset(TRAIN_FILE_NAME)
-        clf = tree.DecisionTreeClassifier()
+        clf = tree.DecisionTreeClassifier(max_depth=4)
         return clf.fit(x_tr, y_tr)
 
     mod = []
@@ -58,11 +59,12 @@ def score_single_tree():
     return result
 
 
-def calculate_accuracy(mod):
+def selection(mod):
     x_test, y_test = split_train_set(TEST_FILE_NAME)
     a = []
     for m in mod:
-        a.append(m.score(x_test, y_test))
+        pred = m.predict(x_test)
+        a.append(precision_score(y_test, pred, average='micro') * 0.4 + recall_score(y_test, pred, average='micro') * 0.3 + f1_score(y_test, pred, average='micro') * 0.3)
     d = []
     for i, j in zip(a, mod):
         d.append((i, j))
@@ -99,7 +101,7 @@ def next_gen(actual_gen):
 if __name__ == '__main__':
     s = 0.3
     models = generate_initial_population(POPULATION)
-    generation = calculate_accuracy(models)
+    generation = selection(models)
     save_decision_tree(generation[0][1])
     for i in range(GENERATION-1):
         generation = generation[:int(len(generation) * s)]
@@ -109,7 +111,7 @@ if __name__ == '__main__':
         for n in ng:
             x_tr, x_te, y_tr, y_te = split_dataset(TRAIN_FILE_NAME)
             array.append(n.fit(x_tr, y_tr.ravel()))
-        newgen = calculate_accuracy(array)
+        newgen = selection(array)
         generation = newgen
 
     print("Accuracy generation %d: %s" % (GENERATION, generation[0][0]))
