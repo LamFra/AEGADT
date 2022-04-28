@@ -1,4 +1,4 @@
-# CADS: Comparison between Algorithms executed on Datasets and Streams
+# CTGA: Comparison between Traditional and Genetic training Algorithms
 ## Objectives
 The aim of this paper is to use evolutionary algorithms, such as genetic algorithms, to grow decision trees without the 
 use of classical learning algorithms,
