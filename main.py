@@ -1,20 +1,16 @@
 import numpy as np
 import pandas as pd
 import random
-
-from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
 from sklearn import tree
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-
-# from sklearn.datasets import load_breast_cancer
 
 TRAIN_FILE_NAME = "dataset/winequality-white.csv"
 TEST_FILE_NAME = "dataset/winequality-white_test.csv"
 
 
 # defining various steps required for the genetic algorithm
-def initilization_of_population(size, n_feat):
+def initialization_of_population(size, n_feat):
     population = []
     for i in range(size):
         chromosome = np.ones(n_feat, dtype=bool)
@@ -29,20 +25,26 @@ def fitness_score(population):
     for chromosome in population:
         logmodel.fit(X_train.iloc[:, chromosome], y_train)
         predictions = logmodel.predict(X_test.iloc[:, chromosome])
-        scores.append(precision_score(y_test, predictions, average='micro') * 0.4 + recall_score(y_test, predictions, average='micro') * 0.3 + f1_score(y_test, predictions, average='micro') * 0.3)
+        scores.append(precision_score(y_test, predictions, average='micro') * 0.4 + recall_score(y_test, predictions,
+                                                                                                 average='micro') * 0.3 + f1_score(
+            y_test, predictions, average='micro') * 0.3)
     scores, population = np.array(scores), np.array(population)
     inds = np.argsort(scores)
     return list(scores[inds][::-1]), list(population[inds, :][::-1])
 
 
-def selection(pop_after_fit, n_parents):
-    population_nextgen = []
-    for i in range(n_parents):
-        population_nextgen.append(pop_after_fit[i])
-    return population_nextgen
+def roulette_wheel_selection(pop_after_fit, fitness, n_parents):
+    # Computes the totallity of the population fitness
+    population_fitness = sum([f for f in fitness])
+
+    # Computes for each chromosome the probability
+    chromosome_probabilities = [f / population_fitness for f in fitness]
+    # Selects one chromosome based on the computed probabilities
+    indexes = np.random.choice(len(pop_after_fit), size=n_parents, p=chromosome_probabilities)
+    return list(np.array(pop_after_fit)[indexes.astype(int)])
 
 
-def crossover(pop_after_sel):
+def one_point_crossover(pop_after_sel):
     population_nextgen = pop_after_sel
     for i in range(len(pop_after_sel)):
         child = pop_after_sel[i]
@@ -51,7 +53,7 @@ def crossover(pop_after_sel):
     return population_nextgen
 
 
-def mutation(pop_after_cross, mutation_rate):
+def flip_bit_mutation(pop_after_cross, mutation_rate):
     population_nextgen = []
     for i in range(0, len(pop_after_cross)):
         chromosome = pop_after_cross[i]
@@ -63,16 +65,16 @@ def mutation(pop_after_cross, mutation_rate):
     return population_nextgen
 
 
-def generations(size, n_feat, n_parents, mutation_rate, n_gen, X_train, X_test, y_train, y_test):
+def generations(size, n_feat, n_parents, mutation_rate, n_gen):
     best_chromo = []
     best_score = []
-    population_nextgen = initilization_of_population(size, n_feat)
+    population_nextgen = initialization_of_population(size, n_feat)
     for i in range(n_gen):
         scores, pop_after_fit = fitness_score(population_nextgen)
         # print(scores[:2])
-        pop_after_sel = selection(pop_after_fit, n_parents)
-        pop_after_cross = crossover(pop_after_sel)
-        population_nextgen = mutation(pop_after_cross, mutation_rate)
+        pop_after_sel = roulette_wheel_selection(pop_after_fit, scores, n_parents)
+        pop_after_cross = one_point_crossover(pop_after_sel)
+        population_nextgen = flip_bit_mutation(pop_after_cross, mutation_rate)
         best_chromo.append(pop_after_fit[0])
         best_score.append(scores[0])
     return best_chromo, best_score
@@ -99,7 +101,7 @@ if __name__ == "__main__":
     predictions = logmodel.predict(X_test)
     print("Metric = " + str(accuracy_score(y_test, predictions)))
 
-    chromo, score = generations(size=10, n_feat=11, n_parents=5, mutation_rate=0.10, n_gen=10, X_train=X_train, X_test=X_test, y_train=y_train, y_test=y_test)
+    chromo, score = generations(size=10, n_feat=11, n_parents=5, mutation_rate=0.10, n_gen=10)
     logmodel.fit(X_train.iloc[:, chromo[-1]], y_train)
     predictions = logmodel.predict(X_test.iloc[:, chromo[-1]])
     print("Metric score after genetic algorithm is= " + str(accuracy_score(y_test, predictions)))
