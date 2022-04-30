@@ -28,26 +28,36 @@ class DecisionTree(object):
         self.labels = [None for _ in range(2 ** (max_depth - 1) - 1)]
         self.max_depth = max_depth
 
-    def set_root(self, feature, operator, value):
+    def set_root(self, feature, _operator, value):
         self.features[0] = feature
-        self.operators[0] = operator
+        self.operators[0] = _operator
         self.values[0] = value
 
-    def set_left_child(self, parent_index, feature, operator, value):
+    def set_left_child(self, parent_index, feature, _operator, value):
         self.features[(2 * parent_index) + 1] = feature
-        self.operators[(2 * parent_index) + 1] = operator
+        self.operators[(2 * parent_index) + 1] = _operator
         self.values[(2 * parent_index) + 1] = value
 
-    def set_right_child(self, parent_index, feature, operator, value):
+    def set_right_child(self, parent_index, feature, _operator, value):
         self.features[(2 * parent_index) + 2] = feature
-        self.operators[(2 * parent_index) + 2] = operator
+        self.operators[(2 * parent_index) + 2] = _operator
         self.values[(2 * parent_index) + 2] = value
 
     def fit(self, _X_train, _y_train):
         self.features = np.random.choice(len(_X_train[0]), size=len(self.features))
-        self.operators = np.random.choice(list(self.ops.values()), size=len(self.operators))
+        self.operators = np.random.choice(list(self.ops.keys()), size=len(self.operators))
         self.values = [np.random.uniform(min(_X_train[:, i]), max(_X_train[:, i])) for i in self.features]
         self.labels += list(np.random.randint(min(_y_train[:, 0]), max(_y_train[:, 0]), size=2 ** (self.max_depth-1)))
+
+    def predict(self, _x_test):
+        labels = []
+        for j in range(len(_x_test)):
+            i = 0
+            while self.labels[i] is None:
+                i = 2 * i + 2 if self.ops.get(str(self.operators[i]))(_x_test[j][self.features[i]], self.values[i]) else 2 * i + 1
+            labels.append(self.labels[i])
+        return labels
+
 
 
 if __name__ == '__main__':
@@ -59,4 +69,5 @@ if __name__ == '__main__':
     print(t.operators)
     print(t.values)
     print(t.labels)
+    print(t.predict(X_test))
     #print(list(t.ops.values()))
