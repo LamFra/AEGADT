@@ -47,17 +47,31 @@ class DecisionTree(object):
         self.features = np.random.choice(len(_X_train[0]), size=len(self.features))
         self.operators = np.random.choice(list(self.ops.keys()), size=len(self.operators))
         self.values = [np.random.uniform(min(_X_train[:, i]), max(_X_train[:, i])) for i in self.features]
-        self.labels += list(np.random.randint(min(_y_train[:, 0]), max(_y_train[:, 0]), size=2 ** (self.max_depth-1)))
+        self.labels += list(np.random.randint(min(_y_train[:, 0]), max(_y_train[:, 0]), size=2 ** (self.max_depth - 1)))
 
     def predict(self, _x_test):
         labels = []
         for j in range(len(_x_test)):
             i = 0
             while self.labels[i] is None:
-                i = 2 * i + 2 if self.ops.get(str(self.operators[i]))(_x_test[j][self.features[i]], self.values[i]) else 2 * i + 1
+                i = 2 * i + 2 if self.ops.get(str(self.operators[i]))(_x_test[j][self.features[i]],
+                                                                      self.values[i]) else 2 * i + 1
             labels.append(self.labels[i])
         return labels
 
+    def precision_score(self, _x_test, _y_test):
+        # Precision = (TruePositives_1 + TruePositives_2) / ((TruePositives_1 + TruePositives_2) + (FalsePositives_1
+        # + FalsePositives_2) )
+        return [i == j for i, j in zip(self.predict(_x_test), _y_test)].count(True) / len(_y_test)
+
+    def recall_score(self, _x_test, _y_test):
+        # Recall = (TruePositives_1 + TruePositives_2) / ((TruePositives_1 + TruePositives_2) + (FalseNegatives_1 +
+        # FalseNegatives_2))
+        return [i == j for i, j in zip(self.predict(_x_test), _y_test)].count(True) / len(_y_test)
+
+    def f_measure_score(self, _x_test, _y_test):
+        precision, recall = self.precision_score(_x_test, _y_test), self.recall_score(_x_test, _y_test)
+        return (2 * precision * recall) / (precision + recall)
 
 
 if __name__ == '__main__':
@@ -70,4 +84,6 @@ if __name__ == '__main__':
     print(t.values)
     print(t.labels)
     print(t.predict(X_test))
-    #print(list(t.ops.values()))
+    print(t.precision_score(X_test, list(int(i) for i in y_test[:, 0])))
+    print(t.recall_score(X_test, list(int(i) for i in y_test[:, 0])))
+    print(t.f_measure_score(X_test, list(int(i) for i in y_test[:, 0])))
