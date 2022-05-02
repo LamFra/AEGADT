@@ -44,10 +44,30 @@ class DecisionTree(object):
         self.values[(2 * parent_index) + 2] = value
 
     def fit(self, _X_train, _y_train):
+        def gini_impurity(_X, _y, index):
+            ds = np.hstack((_X, _y))
+            orderedbycolumnds = ds[np.array(ds[:, index]).argsort()]
+            ts, l = np.hsplit(orderedbycolumnds, [11, 12])[0], np.hsplit(orderedbycolumnds, [11, 12])[1]
+            distinct = list(set(list(orderedbycolumnds[:, index])))
+            distinct.sort()
+            distinctlabels = list(set(list(l[:, 0])))
+            med = [(distinct[i] + distinct[i + 1]) / 2 for i in range(len(distinct) - 1)]
+            gini = []
+            for m in med:
+                rows = max([i for i, row in zip(range(ts.shape[0]), ts) if row[index] <= m]) + 1
+                impurityleaftrue = 1 - sum([(list(l[:rows, 0]).count(i) / rows) ** 2 for i in distinctlabels])
+                impurityleaffalse = 1 - sum(
+                    [(list(l[rows:, 0]).count(i) / (len(l) - rows)) ** 2 for i in distinctlabels])
+                gini.append([(rows / len(l)) * impurityleaftrue + ((len(l) - rows) / len(l)) * impurityleaffalse, m])
+            return gini[list(np.array(gini)[:, 0]).index(min(np.array(gini)[:, 0]))]
+        g = [gini_impurity(_X_train, _y_train, i) for i in range(_X_train.shape[1])]
+        m = g[list(np.array(g)[:, 0]).index(min(np.array(g)[:, 0]))]
+        self.features = [list(g).index(m)]
+        self.values = [m[1]]
         self.features = np.random.choice(len(_X_train[0]), size=len(self.features))
         self.operators = np.random.choice(list(self.ops.keys()), size=len(self.operators))
         self.values = [np.random.uniform(min(_X_train[:, i]), max(_X_train[:, i])) for i in self.features]
-        self.labels += list(np.random.randint(min(_y_train[:, 0]), max(_y_train[:, 0]), size=2 ** (self.max_depth - 1)))
+        self.labels += list(np.random.randint(min(_y_train), max(_y_train), size=2 ** (self.max_depth - 1)))
 
     def predict(self, _x_test):
         labels = []
@@ -80,10 +100,9 @@ if __name__ == '__main__':
     t = DecisionTree(max_depth=4)
     t.fit(X_train, y_train)
     print(t.features)
-    print(t.operators)
+    # print(t.operators)
     print(t.values)
-    print(t.labels)
-    print(t.predict(X_test))
-    print(t.precision_score(X_test, list(int(i) for i in y_test[:, 0])))
-    print(t.recall_score(X_test, list(int(i) for i in y_test[:, 0])))
-    print(t.f_measure_score(X_test, list(int(i) for i in y_test[:, 0])))
+    # print(t.labels)
+
+    # print(t.predict(X_test))
+    # print(t.f_measure_score(X_test, list(int(i) for i in y_test[:, 0])))
