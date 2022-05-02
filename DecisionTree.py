@@ -3,6 +3,7 @@ from main import TRAIN_FILE_NAME
 import pandas as pd
 import numpy as np
 import operator
+from collections import Counter
 
 
 def split_dataset(filename):
@@ -14,48 +15,60 @@ def split_dataset(filename):
 
 
 class DecisionTree(object):
-    ops = {
-        ">=": operator.ge,
-        "<=": operator.le,
-        ">": operator.gt,
-        "<": operator.lt
-    }
-
     def __init__(self, max_depth):
         self.features = [None for _ in range(2 ** (max_depth - 1) - 1)]
-        self.operators = [None for _ in range(2 ** (max_depth - 1) - 1)]
         self.values = [None for _ in range(2 ** (max_depth - 1) - 1)]
-        self.labels = [None for _ in range(2 ** (max_depth - 1) - 1)]
+        self.labels = [None for _ in range(2 ** max_depth - 1)]
         self.max_depth = max_depth
 
-    def set_root(self, feature, _operator, value):
+    def set_root(self, feature, value):
         self.features[0] = feature
-        self.operators[0] = _operator
         self.values[0] = value
 
-    def set_left_child(self, parent_index, feature, _operator, value):
+    def set_left_child(self, parent_index, feature, value):
         self.features[(2 * parent_index) + 1] = feature
-        self.operators[(2 * parent_index) + 1] = _operator
         self.values[(2 * parent_index) + 1] = value
 
-    def set_right_child(self, parent_index, feature, _operator, value):
+    def set_right_child(self, parent_index, feature, value):
         self.features[(2 * parent_index) + 2] = feature
-        self.operators[(2 * parent_index) + 2] = _operator
         self.values[(2 * parent_index) + 2] = value
 
     def fit(self, _X_train, _y_train):
-        self.features = np.random.choice(len(_X_train[0]), size=len(self.features))
-        self.operators = np.random.choice(list(self.ops.keys()), size=len(self.operators))
-        self.values = [np.random.uniform(min(_X_train[:, i]), max(_X_train[:, i])) for i in self.features]
-        self.labels += list(np.random.randint(min(_y_train[:, 0]), max(_y_train[:, 0]), size=2 ** (self.max_depth - 1)))
+        def gini_impurity(ds, index):
+            orderedbycolumnds = ds[np.array(ds[:, index]).argsort()]
+            ts, l = np.hsplit(orderedbycolumnds, [11, 12])[0], np.hsplit(orderedbycolumnds, [11, 12])[1]
+            distinct = list(set(list(orderedbycolumnds[:, index])))
+            distinct.sort()
+            distinctlabels = list(set(list(l[:, 0])))
+            med = [(distinct[i] + distinct[i + 1]) / 2 for i in range(len(distinct) - 1)]
+            gini = []
+            for m in med:
+                rows = max([i for i, row in zip(range(ts.shape[0]), ts) if row[index] <= m]) + 1
+                impurityleaftrue = 1 - sum([(list(l[:rows, 0]).count(i) / rows) ** 2 for i in distinctlabels])
+                impurityleaffalse = 1 - sum(
+                    [(list(l[rows:, 0]).count(i) / (len(l) - rows)) ** 2 for i in distinctlabels])
+                gini.append([(rows / len(l)) * impurityleaftrue + ((len(l) - rows) / len(l)) * impurityleaffalse, m])
+            return gini[list(np.array(gini)[:, 0]).index(min(np.array(gini)[:, 0]))]
+        _x, _y = _X_train, _y_train
+        subdatasets = [None for _ in range(2 ** self.max_depth - 1)]
+        subdatasets[0] = np.hstack((_x, _y))
+        for j, d in zip(range(2 ** (self.max_depth - 1) - 1), subdatasets):
+            g = [gini_impurity(d, i) for i in range(_X_train.shape[1])]
+            m = g[list(np.array(g)[:, 0]).index(min(np.array(g)[:, 0]))]
+            self.features[j] = list(g).index(m)
+            self.values[j] = m[1]
+            subdatasets[2 * j + 1] = np.array([list(rows) for rows in subdatasets[j] if operator.le(rows[self.features[j]], self.values[j])])
+            subdatasets[2 * j + 2] = np.array([list(rows) for rows in subdatasets[j] if operator.gt(rows[self.features[j]], self.values[j])])
+
+        for i in range(2 ** (self.max_depth - 1) - 1, 2 ** self.max_depth - 1):
+            self.labels[i], _ = Counter(list((np.hsplit(subdatasets[i], [11, 12])[1])[:, 0])).most_common(1)[0]
 
     def predict(self, _x_test):
         labels = []
         for j in range(len(_x_test)):
             i = 0
             while self.labels[i] is None:
-                i = 2 * i + 2 if self.ops.get(str(self.operators[i]))(_x_test[j][self.features[i]],
-                                                                      self.values[i]) else 2 * i + 1
+                i = 2 * i + 2 if operator.le(_x_test[j][self.features[i]], self.values[i]) else 2 * i + 1
             labels.append(self.labels[i])
         return labels
 
@@ -80,10 +93,8 @@ if __name__ == '__main__':
     t = DecisionTree(max_depth=4)
     t.fit(X_train, y_train)
     print(t.features)
-    print(t.operators)
     print(t.values)
     print(t.labels)
-    print(t.predict(X_test))
-    print(t.precision_score(X_test, list(int(i) for i in y_test[:, 0])))
-    print(t.recall_score(X_test, list(int(i) for i in y_test[:, 0])))
-    print(t.f_measure_score(X_test, list(int(i) for i in y_test[:, 0])))
+
+    # print(t.predict(X_test))
+    # print(t.f_measure_score(X_test, list(int(i) for i in y_test[:, 0])))
