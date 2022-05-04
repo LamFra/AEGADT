@@ -41,7 +41,8 @@ class DecisionTree(object):
             distinct.sort()
             distinctlabels = list(set(list(l[:, 0])))
             med = [(distinct[i] + distinct[i + 1]) / 2 for i in range(len(distinct) - 1)]
-            med = list(np.random.choice(med, size=int(len(med)*0.2)))
+            med = list(np.random.choice(med, size=(int(len(med)*0.2) if int(len(med)*0.2) > 0 else 1)))
+
             gini = []
             for m in med:
                 rows = max([i for i, row in zip(range(ts.shape[0]), ts) if row[index] <= m]) + 1
@@ -90,7 +91,7 @@ class DecisionTree(object):
 if __name__ == '__main__':
     df, label = split_dataset(TRAIN_FILE_NAME)
     X_train, X_test, y_train, y_test = train_test_split(df, label, test_size=0.20)
-    t = DecisionTree(max_depth=4)
+    t = DecisionTree(max_depth=6)
     t.fit(X_train, y_train)
     print(t.features)
     print(t.values)
