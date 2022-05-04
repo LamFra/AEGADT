@@ -41,12 +41,12 @@ class DecisionTree(object):
             distinct.sort()
             distinctlabels = list(set(list(l[:, 0])))
             med = [(distinct[i] + distinct[i + 1]) / 2 for i in range(len(distinct) - 1)]
+            med = list(np.random.choice(med, size=int(len(med)*0.2)))
             gini = []
             for m in med:
                 rows = max([i for i, row in zip(range(ts.shape[0]), ts) if row[index] <= m]) + 1
                 impurityleaftrue = 1 - sum([(list(l[:rows, 0]).count(i) / rows) ** 2 for i in distinctlabels])
-                impurityleaffalse = 1 - sum(
-                    [(list(l[rows:, 0]).count(i) / (len(l) - rows)) ** 2 for i in distinctlabels])
+                impurityleaffalse = 1 - sum([(list(l[rows:, 0]).count(i) / (len(l) - rows)) ** 2 for i in distinctlabels])
                 gini.append([(rows / len(l)) * impurityleaftrue + ((len(l) - rows) / len(l)) * impurityleaffalse, m])
             return gini[list(np.array(gini)[:, 0]).index(min(np.array(gini)[:, 0]))]
         _x, _y = _X_train, _y_train
@@ -89,12 +89,12 @@ class DecisionTree(object):
 
 if __name__ == '__main__':
     df, label = split_dataset(TRAIN_FILE_NAME)
-    X_train, X_test, y_train, y_test = train_test_split(df, label, test_size=0.20, random_state=101)
+    X_train, X_test, y_train, y_test = train_test_split(df, label, test_size=0.20)
     t = DecisionTree(max_depth=4)
     t.fit(X_train, y_train)
     print(t.features)
     print(t.values)
     print(t.labels)
 
-    # print(t.predict(X_test))
-    # print(t.f_measure_score(X_test, list(int(i) for i in y_test[:, 0])))
+    print(t.predict(X_test))
+    print(t.f_measure_score(X_test, list(int(i) for i in y_test[:, 0])))
