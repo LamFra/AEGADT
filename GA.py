@@ -14,10 +14,19 @@ def score_population(_population, _x_test, _y_test):
     return [p.f_measure_score(_x_test, _y_test) for p in _population]
 
 
+def roulette_wheel_selection(pop_after_fit, fitness, n_parents):
+    population_fitness = sum(fitness)
+    chromosome_probabilities = [f / population_fitness for f in fitness]
+    indexes = np.random.choice(len(pop_after_fit), size=n_parents, p=chromosome_probabilities)
+    return list(np.array(pop_after_fit)[indexes.astype(int)])
+
+
 if __name__ == '__main__':
     df, label = split_dataset(TRAIN_FILE_NAME)
     X_train, X_test, y_train, y_test = train_test_split(df, label, test_size=0.20)
     population = initial_population(5, 4, X_train, y_train)
     scores = score_population(population, X_test, y_test)
+    pop_sel = roulette_wheel_selection(population, scores, 2)
     print(population)
     print(scores)
+    print(pop_sel)
