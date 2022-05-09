@@ -34,6 +34,12 @@ def crossover(pop_after_sel, n_child):
     return _pop_after_crossover
 
 
+def mutation(pop_after_cross, _x_train, _y_train):
+    pop_mutate = list(np.array(pop_after_cross)[np.random.choice([True, False], size=len(pop_after_cross), p=[0.15, 0.85])])
+    for ds in pop_mutate:
+        ds.random_resetting(_x_train, _y_train)
+
+
 if __name__ == '__main__':
     df, label = split_dataset(TRAIN_FILE_NAME)
     X_train, X_test, y_train, y_test = train_test_split(df, label, test_size=0.20)
@@ -41,6 +47,7 @@ if __name__ == '__main__':
     scores = score_population(population, X_test, y_test)
     pop_sel = roulette_wheel_selection(population, scores, 2)
     pop_crossover = crossover(pop_sel, 5)
+    mutation(pop_crossover, X_train, y_train)
     print(population)
     print(scores)
     print(pop_sel)

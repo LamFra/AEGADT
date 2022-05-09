@@ -3,25 +3,6 @@ from main import TRAIN_FILE_NAME
 import pandas as pd
 import numpy as np
 import operator
-from collections import Counter
-
-"""
-        def gini_impurity(ds, index):
-            orderedbycolumnds = ds[np.array(ds[:, index]).argsort()]
-            ts, l = np.hsplit(orderedbycolumnds, [11, 12])[0], np.hsplit(orderedbycolumnds, [11, 12])[1]
-            distinct = list(set(list(orderedbycolumnds[:, index])))
-            distinct.sort()
-            distinctlabels = list(set(list(l[:, 0])))
-            med = [(distinct[i] + distinct[i + 1]) / 2 for i in range(len(distinct) - 1)]
-            med = list(np.random.choice(med, size=int(len(med)*0.2)))
-            gini = []
-            for m in med:
-                rows = max([i for i, row in zip(range(ts.shape[0]), ts) if row[index] <= m]) + 1
-                impurityleaftrue = 1 - sum([(list(l[:rows, 0]).count(i) / rows) ** 2 for i in distinctlabels])
-                impurityleaffalse = 1 - sum([(list(l[rows:, 0]).count(i) / (len(l) - rows)) ** 2 for i in distinctlabels])
-                gini.append([(rows / len(l)) * impurityleaftrue + ((len(l) - rows) / len(l)) * impurityleaffalse, m])
-            return gini[list(np.array(gini)[:, 0]).index(min(np.array(gini)[:, 0]))]
-        """
 
 
 def one_point_crossover(c1, c2):
@@ -67,21 +48,6 @@ class DecisionTree(object):
         self.values[(2 * parent_index) + 2] = value
 
     def fit(self, _X_train, _y_train):
-        """
-        _x, _y = _X_train, _y_train
-        subdatasets = [None for _ in range(2 ** self.max_depth - 1)]
-        subdatasets[0] = np.hstack((_x, _y))
-        for j, d in zip(range(2 ** (self.max_depth - 1) - 1), subdatasets):
-            g = [gini_impurity(d, i) for i in range(_X_train.shape[1])]
-            m = g[list(np.array(g)[:, 0]).index(min(np.array(g)[:, 0]))]
-            self.features[j] = list(g).index(m)
-            self.values[j] = m[1]
-            subdatasets[2 * j + 1] = np.array([list(rows) for rows in subdatasets[j] if operator.le(rows[self.features[j]], self.values[j])])
-            subdatasets[2 * j + 2] = np.array([list(rows) for rows in subdatasets[j] if operator.gt(rows[self.features[j]], self.values[j])])
-
-        for i in range(2 ** (self.max_depth - 1) - 1, 2 ** self.max_depth - 1):
-            self.labels[i], _ = Counter(list((np.hsplit(subdatasets[i], [11, 12])[1])[:, 0])).most_common(1)[0]
-        """
         self.features = np.random.choice(len(_X_train[0]), size=len(self.features))
         self.values = [np.random.uniform(min(_X_train[:, i]), max(_X_train[:, i])) for i in self.features]
         self.labels += list(np.random.randint(min(_y_train[:, 0]), max(_y_train[:, 0]), size=2 ** (self.max_depth - 1)))
@@ -109,11 +75,24 @@ class DecisionTree(object):
         precision, recall = self.precision_score(_x_test, _y_test), self.recall_score(_x_test, _y_test)
         return (2 * precision * recall) / (precision + recall)
 
+    def random_resetting(self, _x_train, _y_train):
+        _x, _y = _x_train, _y_train
+        gene_mutation = list(np.array(range(2 ** self.max_depth - 1))[
+                                 np.random.choice([True, False], size=2 ** self.max_depth - 1, p=[0.15, 0.85])])
+        for i in gene_mutation:
+            if self.labels[i] is None:
+                self.features[i] = np.random.choice(range(_x_train.shape[1]))
+                self.values[i] = np.random.uniform(min(_x_train[:, i]), max(_x_train[:, i]))
+            else:
+                self.labels[i] = np.random.choice(list(set(_y_train[:, 0])))
+
+        print("gene", gene_mutation)
+
 
 if __name__ == '__main__':
     df, label = split_dataset(TRAIN_FILE_NAME)
     X_train, X_test, y_train, y_test = train_test_split(df, label, test_size=0.20)
-    t = DecisionTree(max_depth=4)
+    t = DecisionTree(max_depth=6)
     t.fit(X_train, y_train)
     print(t.features)
     print(t.values)
