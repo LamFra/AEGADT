@@ -21,12 +21,27 @@ def roulette_wheel_selection(pop_after_fit, fitness, n_parents):
     return list(np.array(pop_after_fit)[indexes.astype(int)])
 
 
+def crossover(pop_after_sel, n_child):
+    _pop_after_crossover = []
+    for _ in range(int(n_child / 2)):
+        for a in one_point_crossover(pop_after_sel[np.random.choice(range(len(pop_after_sel)))],
+                                     pop_after_sel[np.random.choice(range(len(pop_after_sel)))]):
+            _pop_after_crossover.append(a)
+    if len(_pop_after_crossover) < n_child:
+        _pop_after_crossover.append(one_point_crossover(pop_after_sel[np.random.choice(range(len(pop_after_sel)))],
+                                                        pop_after_sel[np.random.choice(range(len(pop_after_sel)))])[
+                                        np.random.choice(range(2))])
+    return _pop_after_crossover
+
+
 if __name__ == '__main__':
     df, label = split_dataset(TRAIN_FILE_NAME)
     X_train, X_test, y_train, y_test = train_test_split(df, label, test_size=0.20)
     population = initial_population(5, 4, X_train, y_train)
     scores = score_population(population, X_test, y_test)
     pop_sel = roulette_wheel_selection(population, scores, 2)
+    pop_crossover = crossover(pop_sel, 5)
     print(population)
     print(scores)
     print(pop_sel)
+    print(pop_crossover)

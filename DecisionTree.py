@@ -24,6 +24,21 @@ from collections import Counter
         """
 
 
+def one_point_crossover(c1, c2):
+    nodes = [1]
+    _c1, _c2 = DecisionTree(c1.max_depth), DecisionTree(c2.max_depth)
+    _c1.features, _c1.values, _c1.labels = c1.features.copy(), c1.values.copy(), c1.labels.copy()
+    _c2.features, _c2.values, _c2.labels = c2.features.copy(), c2.values.copy(), c2.labels.copy()
+    for i in nodes:
+        if i < 2 ** (_c1.max_depth - 1) - 1:
+            _c1.features[i], _c2.features[i] = _c2.features[i], _c1.features[i]
+            _c1.values[i], _c2.values[i] = _c2.values[i], _c1.values[i]
+            _c1.labels[i], _c2.labels[i] = _c2.labels[i], _c1.labels[i]
+            nodes.append(2 * i + 1)
+            nodes.append(2 * i + 2)
+    return [_c1, _c2]
+
+
 def split_dataset(filename):
     with open(filename, "r"):
         dataset = pd.read_csv(filename, header=0, sep=';')
