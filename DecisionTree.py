@@ -5,35 +5,7 @@ import numpy as np
 import operator
 from collections import Counter
 
-
-def split_dataset(filename):
-    with open(filename, "r"):
-        dataset = pd.read_csv(filename, header=0, sep=';')
-    wine = np.array(dataset, dtype=float)
-    data, label = np.hsplit(wine, [11, 12])[0], np.hsplit(wine, [11, 12])[1]
-    return data, label
-
-
-class DecisionTree(object):
-    def __init__(self, max_depth):
-        self.features = [None for _ in range(2 ** (max_depth - 1) - 1)]
-        self.values = [None for _ in range(2 ** (max_depth - 1) - 1)]
-        self.labels = [None for _ in range(2 ** max_depth - 1)]
-        self.max_depth = max_depth
-
-    def set_root(self, feature, value):
-        self.features[0] = feature
-        self.values[0] = value
-
-    def set_left_child(self, parent_index, feature, value):
-        self.features[(2 * parent_index) + 1] = feature
-        self.values[(2 * parent_index) + 1] = value
-
-    def set_right_child(self, parent_index, feature, value):
-        self.features[(2 * parent_index) + 2] = feature
-        self.values[(2 * parent_index) + 2] = value
-
-    def fit(self, _X_train, _y_train):
+"""
         def gini_impurity(ds, index):
             orderedbycolumnds = ds[np.array(ds[:, index]).argsort()]
             ts, l = np.hsplit(orderedbycolumnds, [11, 12])[0], np.hsplit(orderedbycolumnds, [11, 12])[1]
@@ -49,6 +21,38 @@ class DecisionTree(object):
                 impurityleaffalse = 1 - sum([(list(l[rows:, 0]).count(i) / (len(l) - rows)) ** 2 for i in distinctlabels])
                 gini.append([(rows / len(l)) * impurityleaftrue + ((len(l) - rows) / len(l)) * impurityleaffalse, m])
             return gini[list(np.array(gini)[:, 0]).index(min(np.array(gini)[:, 0]))]
+        """
+
+
+def split_dataset(filename):
+    with open(filename, "r"):
+        dataset = pd.read_csv(filename, header=0, sep=';')
+    wine = np.array(dataset, dtype=float)
+    data, label = np.hsplit(wine, [11, 12])[0], np.hsplit(wine, [11, 12])[1]
+    return data, label
+
+
+class DecisionTree(object):
+    def __init__(self, max_depth):
+        self.features = [None for _ in range(2 ** (max_depth - 1) - 1)]
+        self.values = [None for _ in range(2 ** (max_depth - 1) - 1)]
+        self.labels = [None for _ in range(2 ** (max_depth - 1) - 1)]
+        self.max_depth = max_depth
+
+    def set_root(self, feature, value):
+        self.features[0] = feature
+        self.values[0] = value
+
+    def set_left_child(self, parent_index, feature, value):
+        self.features[(2 * parent_index) + 1] = feature
+        self.values[(2 * parent_index) + 1] = value
+
+    def set_right_child(self, parent_index, feature, value):
+        self.features[(2 * parent_index) + 2] = feature
+        self.values[(2 * parent_index) + 2] = value
+
+    def fit(self, _X_train, _y_train):
+        """
         _x, _y = _X_train, _y_train
         subdatasets = [None for _ in range(2 ** self.max_depth - 1)]
         subdatasets[0] = np.hstack((_x, _y))
@@ -62,6 +66,10 @@ class DecisionTree(object):
 
         for i in range(2 ** (self.max_depth - 1) - 1, 2 ** self.max_depth - 1):
             self.labels[i], _ = Counter(list((np.hsplit(subdatasets[i], [11, 12])[1])[:, 0])).most_common(1)[0]
+        """
+        self.features = np.random.choice(len(_X_train[0]), size=len(self.features))
+        self.values = [np.random.uniform(min(_X_train[:, i]), max(_X_train[:, i])) for i in self.features]
+        self.labels += list(np.random.randint(min(_y_train[:, 0]), max(_y_train[:, 0]), size=2 ** (self.max_depth - 1)))
 
     def predict(self, _x_test):
         labels = []
