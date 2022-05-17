@@ -82,17 +82,15 @@ class DecisionTree(object):
         for i in gene_mutation:
             if self.labels[i] is None:
                 self.features[i] = np.random.choice(range(_x_train.shape[1]))
-                self.values[i] = np.random.uniform(min(_x_train[:, i]), max(_x_train[:, i]))
+                self.values[i] = np.random.uniform(min(_x_train[:, self.features[i]]), max(_x_train[:, self.features[i]]))
             else:
                 self.labels[i] = np.random.choice(list(set(_y_train[:, 0])))
-
-        print("gene", gene_mutation)
 
 
 if __name__ == '__main__':
     df, label = split_dataset(TRAIN_FILE_NAME)
     X_train, X_test, y_train, y_test = train_test_split(df, label, test_size=0.20)
-    t = DecisionTree(max_depth=6)
+    t = DecisionTree(max_depth=10)
     t.fit(X_train, y_train)
     print(t.features)
     print(t.values)

@@ -35,20 +35,30 @@ def crossover(pop_after_sel, n_child):
 
 
 def mutation(pop_after_cross, _x_train, _y_train):
-    pop_mutate = list(np.array(pop_after_cross)[np.random.choice([True, False], size=len(pop_after_cross), p=[0.15, 0.85])])
+    pop_mutate = list(
+        np.array(pop_after_cross)[np.random.choice([True, False], size=len(pop_after_cross), p=[0.15, 0.85])])
     for ds in pop_mutate:
         ds.random_resetting(_x_train, _y_train)
 
 
+def create_new_generation(_population, _max_depth, _num_individual, _selection):
+    scores = score_population(_population, X_test, y_test)
+    pop_sel = roulette_wheel_selection(population, scores, _selection)
+    pop_cros = crossover(pop_sel, _num_individual)
+    mutation(pop_cros, X_train, y_test)
+    return pop_cros
+
+
 if __name__ == '__main__':
+    max_depth = 10
+    num_individual = 100
+    selection = 20
     df, label = split_dataset(TRAIN_FILE_NAME)
     X_train, X_test, y_train, y_test = train_test_split(df, label, test_size=0.20)
-    population = initial_population(5, 4, X_train, y_train)
-    scores = score_population(population, X_test, y_test)
-    pop_sel = roulette_wheel_selection(population, scores, 2)
-    pop_crossover = crossover(pop_sel, 5)
-    mutation(pop_crossover, X_train, y_train)
-    print(population)
-    print(scores)
-    print(pop_sel)
-    print(pop_crossover)
+    population = initial_population(num_individual, max_depth, X_train, y_train)
+    print("Generation 0, max score: %f" % max(score_population(population, X_test, y_test)))
+    i = 1
+    while True:
+        new_gen = create_new_generation(population, max_depth, num_individual, selection)
+        print("Generation %d, max score: %f" % (i, max(score_population(new_gen, X_test, y_test))))
+        i += 1
