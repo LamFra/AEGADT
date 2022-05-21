@@ -1,4 +1,5 @@
 from DecisionTree import *
+import matplotlib.pyplot as plt
 
 TRAIN_FILE_NAME = "dataset/winequality-white.csv"
 
@@ -50,15 +51,23 @@ def create_new_generation(_population, _max_depth, _num_individual, _selection):
 
 
 if __name__ == '__main__':
-    max_depth = 10
+    max_depth = 4
     num_individual = 100
     selection = 20
+    n_generation = 10
     df, label = split_dataset(TRAIN_FILE_NAME)
     X_train, X_test, y_train, y_test = train_test_split(df, label, test_size=0.20)
     population = initial_population(num_individual, max_depth, X_train, y_train)
-    print("Generation 0, max score: %f" % max(score_population(population, X_test, y_test)))
-    i = 1
-    while True:
+    scores = [max(score_population(population, X_test, y_test))]
+    print("Generation 1, max score: %f" % scores[0])
+    generations = [i for i in range(1, n_generation + 1)]
+    for i in generations[1:]:
         new_gen = create_new_generation(population, max_depth, num_individual, selection)
-        print("Generation %d, max score: %f" % (i, max(score_population(new_gen, X_test, y_test))))
-        i += 1
+        scores.append(max(score_population(new_gen, X_test, y_test)))
+        print("Generation %d, max score: %f" % (i, scores[i - 1]))
+    plt.plot(generations, scores)
+    plt.xlabel("n_generation")
+    plt.ylabel("better score")
+    plt.title("Experiment 1")
+    plt.savefig("experiment1.png")
+    plt.show()
