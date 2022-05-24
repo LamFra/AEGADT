@@ -2,10 +2,10 @@
 
 <!-- PROJECT -->
 <br />
+
 <div align="center">
-    <img src="img/methodology.png" alt="Methodology" width="60%" height="">
- 
-<h3 align="center">AEGADT: Application and Evaluation of Genetic Algorithms on Decision Trees</h3>
+
+   <h3 align="center">AEGADT: Application and Evaluation of Genetic Algorithms on Decision Trees</h3>
 
   <p align="center">
     The project at the centre of this project aims to apply and evaluate the evolution of Decision Trees by means of a Genetic Algorithm. The objectives of the project emphasise the desire to compare the results of different runs of equivalent models, obtained through a batch methodology, to the chosen Genetic Algorithm. Identifying the rate of improvement of decision trees and the number of generations required to obtain the maximum number of correct predictions is an interesting step that this project aims to achieve. It is also important to make observations on the application of the two techniques, considering various factors on the results obtained in the various runs.
@@ -51,12 +51,10 @@ In order to achieve this goal, we propose:
 3. The construction of Decision Trees by means of batch learning techniques based on the same configurations;
 4. The comparison of the results obtained between equivalent models.
 
-In this project we propose to evaluate the functioning of a Genetic Algorithm in training populations of Decision Trees in order to analyse the
-results obtained by having one Decision Tree constructed using a classical training technique called CART (Classification And Regression Trees), and
-another constructed on the basis of the reproduction of the best individual in each generation. In this regard, it becomes interesting to empirically identify
-the rate of improvement of Decision Trees and the number of generations required to reach the maximum number of correct predictions made by a Decision Tree. 
+In this project we propose to evaluate the functioning of a Genetic Algorithm in training populations of Decision Trees in order to analyse the results obtained by having one Decision Tree constructed using a classical training technique called CART (Classification And Regression Trees). 
+In this regard, it becomes interesting to empirically identify the rate of improvement of Decision Trees and the number of generations required to reach the highest number of correct predictions made. In order to assess the impact of the data on the construction of Decision Trees, it is proposed to repeat the experiment on two Datasets.
 
-For more details explore the documentation [here](doc/AEGADT.pdf).
+For more details explore the documentation [here](doc/AEGADT.pdf). 
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
