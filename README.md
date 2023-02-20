@@ -66,10 +66,6 @@ For more details explore the documentation [here](doc/AEGADT.pdf).
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-### Built With
-* Windows 11
-* Windows 10
-
 <!-- GETTING STARTED -->
 ## Getting Started
 
